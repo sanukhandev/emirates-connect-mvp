@@ -1,0 +1,22 @@
+name: Deploy dev
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+permissions: { contents: read }
+concurrency: { group: emirates-connect-dev, cancel-in-progress: true }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - name: Record release pointers
+        run: git submodule status --recursive
+      - name: Backend deploy placeholder
+        run: echo "Replace with provider-specific Laravel deployment"
+      - name: Frontend deploy placeholder
+        run: echo "Replace with provider-specific Angular deployment"
+      - name: Mobile CI placeholder
+        run: echo "Mobile store deployment should use protected release workflow"

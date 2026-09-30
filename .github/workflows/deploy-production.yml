@@ -1,0 +1,14 @@
+name: Deploy production
+on: { workflow_dispatch: {} }
+permissions: { contents: read }
+concurrency: { group: emirates-connect-production, cancel-in-progress: false }
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - run: git submodule status --recursive
+      - name: Production deployment gate
+        run: echo "Configure provider-specific deploy + migrations + health checks + rollback"

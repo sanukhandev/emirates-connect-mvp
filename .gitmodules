@@ -1,0 +1,12 @@
+[submodule "backend"]
+	path = backend
+	url = git@github.com:sanukhandev/emirates-connect-be.git
+	branch = main
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:sanukhandev/emirates-connect-fe.git
+	branch = main
+[submodule "mobile"]
+	path = mobile
+	url = git@github.com:sanukhandev/emirates-connect-mobile.git
+	branch = main

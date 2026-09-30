@@ -1,0 +1,9 @@
+[submodule "backend"]
+	path = backend
+	url = git@github.com:YOUR_ORG/emirates-connect-backend.git
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:YOUR_ORG/emirates-connect-frontend.git
+[submodule "mobile"]
+	path = mobile
+	url = git@github.com:YOUR_ORG/emirates-connect-mobile.git

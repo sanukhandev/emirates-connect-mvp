@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  title: Emirates Connect API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com/api/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses: { '200': { description: OK } }
+  /auth/register:
+    post:
+      summary: Register user
+      responses: { '201': { description: Registered }, '422': { description: Validation error } }
+  /me:
+    get:
+      summary: Current user/profile
+      responses: { '200': { description: Current user }, '401': { description: Unauthenticated } }
+  /verification-requests:
+    post:
+      summary: Submit verification request
+      responses: { '202': { description: Submitted } }
+  /posts:
+    get:
+      summary: Feed/list posts
+      responses: { '200': { description: Paginated posts } }
+    post:
+      summary: Create post
+      responses: { '201': { description: Created } }
+  /posts/{post}/comments:
+    post:
+      summary: Add comment or reply using optional parent_comment_id
+      parameters: [{ name: post, in: path, required: true, schema: { type: string } }]
+      responses: { '201': { description: Created } }
+  /businesses:
+    post:
+      summary: Create business page
+      responses: { '201': { description: Created } }
+  /businesses/{business}/posts:
+    post:
+      summary: Publish as authorized business page
+      parameters: [{ name: business, in: path, required: true, schema: { type: string } }]
+      responses: { '201': { description: Created }, '403': { description: Forbidden } }
+  /reels:
+    get:
+      summary: Reels feed
+      responses: { '200': { description: Cursor-paginated reels } }
+    post:
+      summary: Create reel metadata after media upload
+      responses: { '202': { description: Accepted for processing } }
+  /media/upload-intents:
+    post:
+      summary: Request signed media upload
+      responses: { '201': { description: Upload intent created } }
+  /reports:
+    post:
+      summary: Report content/account/business
+      responses: { '201': { description: Report created } }

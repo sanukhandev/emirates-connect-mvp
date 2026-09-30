@@ -1,0 +1,18 @@
+name: Validate parent
+on: [pull_request, push]
+permissions: { contents: read }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - name: Verify submodules
+        run: git submodule status --recursive
+      - name: Ensure required parent docs exist
+        run: |
+          test -f AGENTS.md
+          test -f docs/api/openapi.yaml
+          test -f docs/architecture/ARCHITECTURE.md
+          test -f docs/design/DESIGN-SYSTEM.md
+          test -f docs/design/UI-PRINCIPLES.md
