@@ -5,7 +5,7 @@ Angular + Tailwind Web -\
                       > HTTPS /api/v1 -> Laravel API -> MySQL
 Flutter Mobile ------/                    |   |   |
                                           |   |   +-> Queue workers
-                                          |   +-----> Redis/cache (optional initially)
+                                          |   +-----> Redis/cache + queue backend
                                           +---------> Object Storage -> CDN
                                                      |-> video processing/transcoding
 
@@ -19,7 +19,7 @@ Identity, Profiles, Verification, Businesses, Publishing, Discussions, Reels/Med
 JSON REST, `/api/v1`, cursor pagination for feeds, consistent error envelope, idempotency for selected create/upload completion calls, optimistic concurrency where edits can collide.
 
 ## Authentication
-Prefer first-party SPA/mobile patterns supported by Laravel. Web should use secure HttpOnly/Secure/SameSite cookies where deployment topology permits. Mobile may use scoped revocable tokens stored in secure storage. Authorization is policy-based server-side.
+Use Laravel Sanctum as the authentication foundation. Web should use secure HttpOnly/Secure/SameSite cookies where deployment topology permits. Mobile may use scoped revocable tokens stored in secure storage. Authorization is policy-based server-side.
 
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.

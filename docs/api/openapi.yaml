@@ -8,7 +8,21 @@ paths:
   /health:
     get:
       summary: Health check
-      responses: { '200': { description: OK } }
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [status, service]
+                    properties:
+                      status: { type: string, example: ok }
+                      service: { type: string, example: emirates-connect-api }
   /auth/register:
     post:
       summary: Register user
