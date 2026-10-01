@@ -27,6 +27,9 @@
 - Drafts and soft-deleted posts are excluded from public resources; post media deletion is scoped through its parent post to prevent cross-post IDOR.
 - The authenticated Phase 1 feed is limited to published, non-deleted posts from active user accounts and active businesses; drafts, suspended/disabled users, and inactive/suspended businesses are excluded before serialization.
 - Feed cursors use deterministic `published_at`/`id` ordering with bounded page sizes, preventing offset-style page shifting and unbounded collection reads.
+- Comments derive user authorship from the authenticated account, require current active business membership for business authorship and mutation, reject replies to replies, and scope replies to the parent comment's post.
+- Comment bodies are trimmed plain text with a 2,000-character limit; author identity, post identity and `created_by` are immutable and private fields/raw morph classes are excluded from resources.
+- Comments are disabled for drafts, deleted posts and posts hidden by suspended/disabled users or inactive/suspended businesses. Soft-deleted comments and replies are excluded from public listings.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.

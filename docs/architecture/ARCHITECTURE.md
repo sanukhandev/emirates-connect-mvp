@@ -39,6 +39,9 @@ Posts use one polymorphic `posts` table with `author_type` values `user` or `bus
 ## Feed
 EC-007 Phase 1 exposes an authenticated global chronological feed over the existing `posts` model. The query filters published, non-deleted posts with non-null `published_at`, then excludes suspended/disabled user authors and inactive/suspended business authors. Results are ordered by `published_at DESC, id DESC` and returned through cursor pagination; no follow graph, ranking score, or feed materialization is introduced. Future follow and ranking work can extend this query layer without creating a second content model.
 
+## Comments and replies
+Comments use one polymorphic `comments` table with `author_type` values `user` or `business`. A comment belongs to a post and may have one `parent_id`; only top-level comments may receive replies, so maximum nesting depth is one. `created_by` records the authenticated human actor when a business publishes a comment. Public listings return visible top-level comments with replies ordered by `created_at ASC, id ASC`; deleted parents and their replies are omitted. Current business membership, not historical authorship, controls business comment edits and deletes.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 
