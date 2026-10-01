@@ -18,6 +18,10 @@
 - Profile mutations are ownership-scoped through `/me`; public resources exclude email and authentication data.
 - Profile media accepts only validated JPEG, PNG or WebP uploads, uses generated Storage filenames, and protects internal storage paths from API serialization.
 - Profile URLs are server-validated for safe HTTP(S) schemes, with LinkedIn restricted to LinkedIn hosts.
+- Business pages are operated through authenticated user memberships; owner/admin/editor role boundaries and last-owner protection are enforced server-side.
+- Business member mutations are scoped to the parent business to prevent cross-business IDOR and role escalation; owners cannot be removed through the generic member endpoint.
+- Business logos and covers accept only validated JPEG, PNG or WebP uploads, use generated Storage filenames, clean up managed replacements, and do not expose internal paths.
+- Public business resources expose active business presentation data only; creator, membership and internal moderation fields remain private. Inactive and suspended pages return 404 publicly.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.

@@ -24,6 +24,15 @@ Use Laravel Sanctum's hybrid model: Angular uses stateful first-party SPA authen
 ## Identity and profiles
 The `users` table is the authentication/account identity boundary. The one-to-one `profiles` table is the professional/public identity boundary: display name, headline, biography, work context, controlled industry/emirate values and managed media metadata. Profile ownership is enforced through `/me` routes; public profile resources do not expose account email or security fields.
 
+## Business pages and membership roles
+Businesses are professional pages, not authentication identities. Human users authenticate and operate pages through the `business_members` relationship:
+
+```text
+User <-> BusinessMember <-> Business
+```
+
+Each created business receives one owner membership in the same transaction. Additional memberships use the controlled `owner`, `admin` and `editor` roles; owner/admin capabilities are enforced by `BusinessPolicy`, and member routes are scoped to the requested business to prevent cross-business IDOR. Business slugs are stable after creation. Business identity uses the existing controlled industry and emirate enums, while logo and cover media use the Laravel Storage abstraction.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 
