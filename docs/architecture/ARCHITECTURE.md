@@ -19,7 +19,7 @@ Identity, Profiles, Verification, Businesses, Publishing, Discussions, Reels/Med
 JSON REST, `/api/v1`, cursor pagination for feeds, consistent error envelope, idempotency for selected create/upload completion calls, optimistic concurrency where edits can collide.
 
 ## Authentication
-Use Laravel Sanctum as the authentication foundation. Web should use secure HttpOnly/Secure/SameSite cookies where deployment topology permits. Mobile may use scoped revocable tokens stored in secure storage. Authorization is policy-based server-side.
+Use Laravel Sanctum personal access bearer tokens for both Angular and Flutter clients. Tokens are revocable, named `api-session`, and sent only over HTTPS outside local development; clients must keep them in platform-appropriate secure storage. This API does not use Sanctum's stateful SPA cookie flow, so bearer requests do not rely on CSRF cookies. Authorization remains policy-based server-side.
 
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
