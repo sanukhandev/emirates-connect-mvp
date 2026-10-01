@@ -42,6 +42,9 @@ EC-007 Phase 1 exposes an authenticated global chronological feed over the exist
 ## Comments and replies
 Comments use one polymorphic `comments` table with `author_type` values `user` or `business`. A comment belongs to a post and may have one `parent_id`; only top-level comments may receive replies, so maximum nesting depth is one. `created_by` records the authenticated human actor when a business publishes a comment. Public listings return visible top-level comments with replies ordered by `created_at ASC, id ASC`; deleted parents and their replies are omitted. Current business membership, not historical authorship, controls business comment edits and deletes.
 
+## Reactions
+Reactions use one `reactions` table with `user_id` as the authenticated human actor and a polymorphic `reactable` target aliased as `post` or `comment`. A database unique constraint permits one active reaction per user and target; `PUT` is idempotent and switches the existing type, while `DELETE` removes it. Posts, comments, and replies share stable summary output with total counts and `current_user`; businesses are never reaction actors. Mutations require an active account and a publicly interactable target, and summaries are aggregate-loaded into existing post/comment resources without changing chronological feed ranking.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 

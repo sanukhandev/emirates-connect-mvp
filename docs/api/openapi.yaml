@@ -263,6 +263,28 @@ paths:
       summary: Soft-delete a comment or reply
       security: [{ cookieAuth: [] }, { bearerAuth: [] }]
       responses: { '204': { description: Deleted }, '403': { description: Not authorized }, '404': { description: Comment unavailable } }
+  /posts/{post}/reaction:
+    parameters: [{ name: post, in: path, required: true, schema: { type: integer, format: int64 } }]
+    put:
+      summary: Set or switch the current human user's reaction on a visible post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SetReactionRequest' } } } }
+      responses: { '200': { description: Updated post with reaction summary }, '401': { description: Unauthenticated }, '403': { description: Account is not active }, '404': { description: Post unavailable }, '422': { description: Invalid reaction type } }
+    delete:
+      summary: Remove the current human user's reaction from a visible post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '204': { description: Removed or already absent }, '401': { description: Unauthenticated }, '404': { description: Post unavailable } }
+  /comments/{comment}/reaction:
+    parameters: [{ name: comment, in: path, required: true, schema: { type: integer, format: int64 } }]
+    put:
+      summary: Set or switch the current human user's reaction on a visible comment or reply
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SetReactionRequest' } } } }
+      responses: { '200': { description: Updated comment with reaction summary }, '401': { description: Unauthenticated }, '403': { description: Account is not active }, '404': { description: Comment unavailable }, '422': { description: Invalid reaction type } }
+    delete:
+      summary: Remove the current human user's reaction from a visible comment or reply
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '204': { description: Removed or already absent }, '401': { description: Unauthenticated }, '404': { description: Comment unavailable } }
   /businesses:
     post:
       summary: Create business page
@@ -559,7 +581,7 @@ components:
             prev_cursor: { type: string, nullable: true }
     Post:
       type: object
-      required: [id, status, author, media]
+      required: [id, status, author, media, reactions]
       properties:
         id: { type: integer, format: int64 }
         body: { type: string, nullable: true, maxLength: 5000 }
@@ -569,6 +591,7 @@ components:
         updated_at: { type: string, format: date-time }
         author: { $ref: '#/components/schemas/PostAuthor' }
         media: { type: array, maxItems: 4, items: { $ref: '#/components/schemas/PostMedia' } }
+        reactions: { $ref: '#/components/schemas/ReactionSummary' }
     PostAuthor:
       oneOf:
         - $ref: '#/components/schemas/UserPostAuthor'
@@ -641,7 +664,7 @@ components:
         meta: { type: object, description: Laravel pagination metadata }
     Comment:
       type: object
-      required: [id, body, author, created_at, updated_at, replies_count, replies]
+      required: [id, body, author, created_at, updated_at, replies_count, replies, reactions]
       properties:
         id: { type: integer, format: int64 }
         body: { type: string, maxLength: 2000 }
@@ -650,6 +673,7 @@ components:
         updated_at: { type: string, format: date-time }
         replies_count: { type: integer }
         replies: { type: array, items: { $ref: '#/components/schemas/CommentReply' } }
+        reactions: { $ref: '#/components/schemas/ReactionSummary' }
       description: Replies are nested only one level; reply resources do not contain replies.
     CommentReply:
       type: object
@@ -674,3 +698,24 @@ components:
       properties:
         body: { type: string, maxLength: 2000 }
       description: Comment author, post and parent are immutable.
+    ReactionSummary:
+      type: object
+      required: [total, counts, current_user]
+      properties:
+        total: { type: integer, minimum: 0 }
+        counts:
+          type: object
+          required: [like, celebrate, support, insightful]
+          properties:
+            like: { type: integer, minimum: 0 }
+            celebrate: { type: integer, minimum: 0 }
+            support: { type: integer, minimum: 0 }
+            insightful: { type: integer, minimum: 0 }
+        current_user: { type: string, enum: [like, celebrate, support, insightful], nullable: true }
+      description: Aggregate counts and the authenticated human user's current reaction; guests receive null current_user.
+    SetReactionRequest:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [like, celebrate, support, insightful] }
+      description: Sets one idempotent human-user reaction per target. Businesses cannot be reaction actors.

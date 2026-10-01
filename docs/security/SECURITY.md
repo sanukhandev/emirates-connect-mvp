@@ -30,6 +30,8 @@
 - Comments derive user authorship from the authenticated account, require current active business membership for business authorship and mutation, reject replies to replies, and scope replies to the parent comment's post.
 - Comment bodies are trimmed plain text with a 2,000-character limit; author identity, post identity and `created_by` are immutable and private fields/raw morph classes are excluded from resources.
 - Comments are disabled for drafts, deleted posts and posts hidden by suspended/disabled users or inactive/suspended businesses. Soft-deleted comments and replies are excluded from public listings.
+- Reactions are limited to active authenticated human users; business identities cannot react. A database unique `(user_id, reactable_type, reactable_id)` constraint prevents duplicate rows, and enum validation blocks arbitrary reaction types.
+- Reaction targets reuse post/comment visibility checks, so drafts, deleted targets, hidden authors, inactive businesses, deleted comments and hidden replies return unavailable responses. Resources expose only aggregate counts and the current user's type, never reactor identities or internal fields.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.
