@@ -5,7 +5,7 @@
 - Secure authentication, revocation and password-reset flow.
 - Email/phone verification as product requires; OTPs short-lived, hashed where persisted, rate-limited.
 - Policy authorization for all resource mutations and business-page role actions.
-- Sanctum bearer-token authentication for Angular and Flutter; bearer API calls do not use cookie-auth CSRF, and CORS remains an explicit allow-list.
+- Sanctum stateful SPA sessions with CSRF for Angular, and hashed personal access bearer tokens for Flutter; CORS remains an explicit credentialed allow-list.
 - Strict request validation and output encoding.
 - Upload size/MIME/signature validation; quarantine/process video before publication.
 - Rate limits and abuse controls for auth, comments, posts, reels, verification and reports.
