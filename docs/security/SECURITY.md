@@ -32,6 +32,7 @@
 - Comments are disabled for drafts, deleted posts and posts hidden by suspended/disabled users or inactive/suspended businesses. Soft-deleted comments and replies are excluded from public listings.
 - Reactions are limited to active authenticated human users; business identities cannot react. A database unique `(user_id, reactable_type, reactable_id)` constraint prevents duplicate rows, and enum validation blocks arbitrary reaction types.
 - Reaction targets reuse post/comment visibility checks, so drafts, deleted targets, hidden authors, inactive businesses, deleted comments and hidden replies return unavailable responses. Resources expose only aggregate counts and the current user's type, never reactor identities or internal fields.
+- Follows use a database unique constraint across follower user, target type and target id, reject self-follow, and accept only active authenticated human users as actors. User and business targets must be publicly visible (active); hidden targets return unavailable responses, while follower/following resources expose only public fields and filter hidden follower accounts. Businesses cannot act as followers and follow edges are never used to personalize the chronological feed.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.
