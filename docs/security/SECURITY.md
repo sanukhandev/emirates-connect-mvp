@@ -25,6 +25,8 @@
 - Posts prevent user impersonation by resolving `user` authorship from the authenticated account and require active owner/admin/editor membership for `business` authorship.
 - Post bodies are plain text, media is limited to validated JPEG/PNG/WebP images (8 MB each, four per post), and generated storage paths are never serialized.
 - Drafts and soft-deleted posts are excluded from public resources; post media deletion is scoped through its parent post to prevent cross-post IDOR.
+- The authenticated Phase 1 feed is limited to published, non-deleted posts from active user accounts and active businesses; drafts, suspended/disabled users, and inactive/suspended businesses are excluded before serialization.
+- Feed cursors use deterministic `published_at`/`id` ordering with bounded page sizes, preventing offset-style page shifting and unbounded collection reads.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.

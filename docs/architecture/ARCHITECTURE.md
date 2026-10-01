@@ -36,6 +36,9 @@ Each created business receives one owner membership in the same transaction. Add
 ## Posts and publishing
 Posts use one polymorphic `posts` table with `author_type` values `user` or `business`. A user remains the authenticated human actor (`created_by`); a business is the publishing identity when a member publishes on its behalf. `post_media` stores image metadata and object-storage paths for up to four JPEG, PNG or WebP images per post. Policies enforce user ownership and active business membership for owner/admin/editor publishing and management. Public endpoints expose published posts only; drafts are limited to their author or authorized business members.
 
+## Feed
+EC-007 Phase 1 exposes an authenticated global chronological feed over the existing `posts` model. The query filters published, non-deleted posts with non-null `published_at`, then excludes suspended/disabled user authors and inactive/suspended business authors. Results are ordered by `published_at DESC, id DESC` and returned through cursor pagination; no follow graph, ranking score, or feed materialization is introduced. Future follow and ranking work can extend this query layer without creating a second content model.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 
