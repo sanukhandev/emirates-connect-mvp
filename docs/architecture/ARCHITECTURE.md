@@ -21,6 +21,9 @@ JSON REST, `/api/v1`, cursor pagination for feeds, consistent error envelope, id
 ## Authentication
 Use Laravel Sanctum's hybrid model: Angular uses stateful first-party SPA authentication with a Laravel session cookie and CSRF protection; Flutter uses revocable personal access bearer tokens named from the device. Shared protected routes use `auth:sanctum`, and authorization remains policy-based server-side.
 
+## Identity and profiles
+The `users` table is the authentication/account identity boundary. The one-to-one `profiles` table is the professional/public identity boundary: display name, headline, biography, work context, controlled industry/emirate values and managed media metadata. Profile ownership is enforced through `/me` routes; public profile resources do not expose account email or security fields.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 

@@ -15,6 +15,9 @@
 - Audit admin/reviewer actions.
 - Account blocking/reporting/content takedown.
 - Dependency scanning and SAST in CI.
+- Profile mutations are ownership-scoped through `/me`; public resources exclude email and authentication data.
+- Profile media accepts only validated JPEG, PNG or WebP uploads, uses generated Storage filenames, and protects internal storage paths from API serialization.
+- Profile URLs are server-validated for safe HTTP(S) schemes, with LinkedIn restricted to LinkedIn hosts.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.
