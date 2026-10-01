@@ -22,6 +22,9 @@
 - Business member mutations are scoped to the parent business to prevent cross-business IDOR and role escalation; owners cannot be removed through the generic member endpoint.
 - Business logos and covers accept only validated JPEG, PNG or WebP uploads, use generated Storage filenames, clean up managed replacements, and do not expose internal paths.
 - Public business resources expose active business presentation data only; creator, membership and internal moderation fields remain private. Inactive and suspended pages return 404 publicly.
+- Posts prevent user impersonation by resolving `user` authorship from the authenticated account and require active owner/admin/editor membership for `business` authorship.
+- Post bodies are plain text, media is limited to validated JPEG/PNG/WebP images (8 MB each, four per post), and generated storage paths are never serialized.
+- Drafts and soft-deleted posts are excluded from public resources; post media deletion is scoped through its parent post to prevent cross-post IDOR.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.

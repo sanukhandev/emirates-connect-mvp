@@ -177,12 +177,54 @@ paths:
       summary: Submit verification request
       responses: { '202': { description: Submitted } }
   /posts:
-    get:
-      summary: Feed/list posts
-      responses: { '200': { description: Paginated posts } }
     post:
-      summary: Create post
-      responses: { '201': { description: Created } }
+      summary: Create a text or image post as the current user or an authorized business
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/CreatePostRequest' } }
+          multipart/form-data: { schema: { $ref: '#/components/schemas/CreatePostMultipartRequest' } }
+      responses: { '201': { description: Created }, '401': { description: Unauthenticated }, '403': { description: Business publishing forbidden }, '422': { description: Validation error } }
+  /posts/{post}:
+    parameters: [{ name: post, in: path, required: true, schema: { type: integer, format: int64 } }]
+    get:
+      summary: Read a published post or an authorized draft
+      responses: { '200': { description: Post }, '404': { description: Post not found or not visible } }
+    patch:
+      summary: Update an owned or authorized business post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/UpdatePostRequest' } } } }
+      responses: { '200': { description: Updated post }, '401': { description: Unauthenticated }, '403': { description: Forbidden }, '422': { description: Validation error } }
+    delete:
+      summary: Soft-delete an owned or authorized business post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '204': { description: Deleted }, '401': { description: Unauthenticated }, '403': { description: Forbidden } }
+  /posts/{post}/media:
+    parameters: [{ name: post, in: path, required: true, schema: { type: integer, format: int64 } }]
+    post:
+      summary: Add one image to an owned or authorized business post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { $ref: '#/components/schemas/AddPostMediaRequest' } } } }
+      responses: { '201': { description: Updated post }, '401': { description: Unauthenticated }, '403': { description: Forbidden }, '422': { description: Invalid image or media limit } }
+  /posts/{post}/media/{media}:
+    parameters:
+      - { name: post, in: path, required: true, schema: { type: integer, format: int64 } }
+      - { name: media, in: path, required: true, schema: { type: integer, format: int64 }, description: Media identifier scoped to the post }
+    delete:
+      summary: Remove image media from an owned or authorized business post
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Updated post }, '401': { description: Unauthenticated }, '403': { description: Forbidden }, '404': { description: Media not in post } }
+  /me/posts:
+    get:
+      summary: List the current user's published and draft posts
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Paginated posts }, '401': { description: Unauthenticated } }
+  /users/{user}/posts:
+    get:
+      summary: List published posts authored by a user
+      parameters: [{ name: user, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { '200': { description: Paginated published posts }, '404': { description: User unavailable } }
   /posts/{post}/comments:
     post:
       summary: Add comment or reply using optional parent_comment_id
@@ -268,10 +310,10 @@ paths:
       security: [{ cookieAuth: [] }, { bearerAuth: [] }]
       responses: { '204': { description: Deleted }, '401': { description: Unauthenticated }, '403': { description: Owner or admin required } }
   /businesses/{business}/posts:
-    post:
-      summary: Publish as authorized business page
+    get:
+      summary: List published posts authored by an active business
       parameters: [{ name: business, in: path, required: true, schema: { type: string } }]
-      responses: { '201': { description: Created }, '403': { description: Forbidden } }
+      responses: { '200': { description: Paginated published posts }, '404': { description: Business unavailable } }
   /reels:
     get:
       summary: Reels feed
@@ -466,3 +508,79 @@ components:
       required: [cover_image]
       properties:
         cover_image: { type: string, format: binary, description: JPEG, PNG or WebP up to 8 MB }
+    PostResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Post' }
+    Post:
+      type: object
+      required: [id, status, author, media]
+      properties:
+        id: { type: integer, format: int64 }
+        body: { type: string, nullable: true, maxLength: 5000 }
+        status: { type: string, enum: [draft, published] }
+        published_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        author: { $ref: '#/components/schemas/PostAuthor' }
+        media: { type: array, maxItems: 4, items: { $ref: '#/components/schemas/PostMedia' } }
+    PostAuthor:
+      oneOf:
+        - $ref: '#/components/schemas/UserPostAuthor'
+        - $ref: '#/components/schemas/BusinessPostAuthor'
+    UserPostAuthor:
+      type: object
+      required: [type, id, name]
+      properties:
+        type: { type: string, enum: [user] }
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        display_name: { type: string, nullable: true }
+        headline: { type: string, nullable: true }
+        avatar_url: { type: string, format: uri, nullable: true }
+    BusinessPostAuthor:
+      type: object
+      required: [type, id, name, slug]
+      properties:
+        type: { type: string, enum: [business] }
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        slug: { type: string }
+        logo_url: { type: string, format: uri, nullable: true }
+    PostMedia:
+      type: object
+      required: [id, type, url, mime_type, sort_order]
+      properties:
+        id: { type: integer, format: int64 }
+        type: { type: string, enum: [image] }
+        url: { type: string, format: uri }
+        mime_type: { type: string, enum: [image/jpeg, image/png, image/webp] }
+        width: { type: integer, nullable: true }
+        height: { type: integer, nullable: true }
+        sort_order: { type: integer }
+    CreatePostRequest:
+      type: object
+      required: [author_type]
+      properties:
+        author_type: { type: string, enum: [user, business] }
+        business_id: { type: integer, format: int64, nullable: true }
+        body: { type: string, maxLength: 5000, nullable: true }
+        status: { type: string, enum: [draft, published], default: published }
+      description: For user authorship the server resolves the current user; business_id is required only for business authorship. Body or media is required.
+    CreatePostMultipartRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreatePostRequest'
+      properties:
+        media: { type: array, maxItems: 4, items: { type: string, format: binary, description: JPEG, PNG or WebP up to 8 MB } }
+    UpdatePostRequest:
+      type: object
+      properties:
+        body: { type: string, maxLength: 5000, nullable: true }
+        status: { type: string, enum: [draft, published] }
+      description: Author identity is immutable. A post must retain body or media.
+    AddPostMediaRequest:
+      type: object
+      required: [media]
+      properties:
+        media: { type: string, format: binary, description: JPEG, PNG or WebP up to 8 MB; maximum four images per post }

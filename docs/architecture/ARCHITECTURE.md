@@ -33,6 +33,9 @@ User <-> BusinessMember <-> Business
 
 Each created business receives one owner membership in the same transaction. Additional memberships use the controlled `owner`, `admin` and `editor` roles; owner/admin capabilities are enforced by `BusinessPolicy`, and member routes are scoped to the requested business to prevent cross-business IDOR. Business slugs are stable after creation. Business identity uses the existing controlled industry and emirate enums, while logo and cover media use the Laravel Storage abstraction.
 
+## Posts and publishing
+Posts use one polymorphic `posts` table with `author_type` values `user` or `business`. A user remains the authenticated human actor (`created_by`); a business is the publishing identity when a member publishes on its behalf. `post_media` stores image metadata and object-storage paths for up to four JPEG, PNG or WebP images per post. Policies enforce user ownership and active business membership for owner/admin/editor publishing and management. Public endpoints expose published posts only; drafts are limited to their author or authorized business members.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 
