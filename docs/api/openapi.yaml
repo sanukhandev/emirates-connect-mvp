@@ -542,6 +542,31 @@ paths:
     get:
       summary: Public business search
       responses: { '200': { description: Paginated business search results }, '422': { description: Invalid search filters } }
+  /notifications:
+    get:
+      summary: List the authenticated user's notifications
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: unread, in: query, schema: { type: boolean } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { '200': { description: Cursor-paginated notifications }, '401': { description: Unauthenticated } }
+  /notifications/unread-count:
+    get:
+      summary: Count the authenticated user's unread notifications
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Unread count } }
+  /notifications/{notification}/read:
+    patch:
+      summary: Mark an owned notification as read
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: notification, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Updated notification }, '404': { description: Notification not owned by the authenticated user } }
+  /notifications/read-all:
+    post:
+      summary: Mark all notifications for the authenticated user as read
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Updated count } }
 
 components:
   securitySchemes:
@@ -1013,3 +1038,35 @@ components:
         emirate: { type: string, nullable: true }
         is_verified: { type: boolean }
       description: Public normalized result. Verification exposes only the trusted badge; no private verification state or fields.
+    Notification:
+      type: object
+      required: [id, type, actor, subject, data, read_at, created_at]
+      properties:
+        id: { type: integer, format: int64 }
+        type: { type: string, enum: [followed, post_commented, comment_replied, post_reacted, comment_reacted, verification_approved, verification_rejected] }
+        actor: { nullable: true, oneOf: [{ $ref: '#/components/schemas/NotificationUserActor' }, { $ref: '#/components/schemas/NotificationBusinessActor' }] }
+        subject: { nullable: true, type: object, properties: { type: { type: string }, id: { type: integer } } }
+        data: { type: object, additionalProperties: true }
+        read_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+      description: Recipient-scoped structured notification. No reviewer, document, recipient or storage fields are exposed.
+    NotificationUserActor:
+      type: object
+      required: [type, id, display_name, is_verified]
+      properties:
+        type: { type: string, enum: [user] }
+        id: { type: integer, format: int64 }
+        display_name: { type: string, nullable: true }
+        avatar_url: { type: string, format: uri, nullable: true }
+        headline: { type: string, nullable: true }
+        is_verified: { type: boolean }
+    NotificationBusinessActor:
+      type: object
+      required: [type, id, name, slug, is_verified]
+      properties:
+        type: { type: string, enum: [business] }
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        slug: { type: string }
+        logo_url: { type: string, format: uri, nullable: true }
+        is_verified: { type: boolean }

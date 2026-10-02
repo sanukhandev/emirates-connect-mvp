@@ -70,6 +70,9 @@ Client requests upload intent -> API validates -> signed object-storage upload -
 ## Reels
 Reels use a dedicated polymorphic domain (`user` or `business`) with `created_by_user_id` for the authenticated human actor. The local MVP accepts one validated MP4 into private generated storage, then the processing service promotes it to a public playback disk and marks it published synchronously; the service boundary is the replacement point for a queued transcoder, thumbnails and CDN/object storage. Public feed and author listings expose published reels only and use chronological cursor pagination (`published_at DESC, id DESC`).
 
+## Notifications
+Notifications are a dedicated recipient-scoped table, not public content. Successful follow, comment/reply, first reaction, and verification review actions dispatch domain events to a synchronous notification listener. The listener stores a typed notification with compact actor/subject IDs and minimal navigation data; future queueing can replace the synchronous listener without changing the API. Notification reads are cursor-paginated by `created_at DESC, id DESC`, and all mutations query by the authenticated recipient.
+
 ## Scalability path
 Start modular monolith. Scale API/workers horizontally; move cache/queue to managed Redis; use read replicas/search service only after metrics justify them. Avoid premature microservices.
 
