@@ -474,6 +474,27 @@ paths:
     post:
       summary: Report content/account/business
       responses: { '201': { description: Report created } }
+  /search:
+    get:
+      summary: Unified public user and business search
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, minLength: 2, maxLength: 200 } }
+        - { name: type, in: query, required: false, schema: { type: string, enum: [all, users, businesses], default: all } }
+        - { name: industry, in: query, required: false, schema: { type: string } }
+        - { name: emirate, in: query, required: false, schema: { type: string } }
+        - { name: verified, in: query, required: false, schema: { type: boolean } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated normalized public search results }, '422': { description: Invalid search filters }, '429': { description: Rate limited } }
+  /search/users:
+    get:
+      summary: Public professional profile search
+      responses: { '200': { description: Paginated user search results }, '422': { description: Invalid search filters } }
+  /search/businesses:
+    get:
+      summary: Public business search
+      responses: { '200': { description: Paginated business search results }, '422': { description: Invalid search filters } }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -871,3 +892,20 @@ components:
           properties:
             url: { type: string, format: uri, description: Five-minute signed URL; never a permanent storage URL }
             expires_at: { type: string, format: date-time }
+    SearchResult:
+      type: object
+      required: [type, id, is_verified]
+      properties:
+        type: { type: string, enum: [user, business] }
+        id: { type: integer, format: int64 }
+        display_name: { type: string, nullable: true }
+        headline: { type: string, nullable: true }
+        avatar_url: { type: string, format: uri, nullable: true }
+        name: { type: string, nullable: true }
+        slug: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        logo_url: { type: string, format: uri, nullable: true }
+        industry: { type: string, nullable: true }
+        emirate: { type: string, nullable: true }
+        is_verified: { type: boolean }
+      description: Public normalized result. Verification exposes only the trusted badge; no private verification state or fields.

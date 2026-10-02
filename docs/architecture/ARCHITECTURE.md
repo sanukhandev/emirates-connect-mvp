@@ -61,6 +61,9 @@ The canonical subject state is `not_submitted -> pending -> approved|rejected`; 
 ## Follow network
 EC-010 adds one directional follows table: an authenticated human User is always the follower and the polymorphic target is either a User or Business (user/business aliases). A database unique constraint permits one edge per follower/target. User and business follow mutations are idempotent, self-follow is rejected, and businesses are targets only. Public follower/following lists are paginated and exclude hidden accounts/targets. User resources expose follower/following counts; business resources expose follower counts. The graph is intentionally not connected to feed ordering or personalization yet.
 
+## Search and discovery
+EC-012 uses a shared MySQL-backed search service for public users/profiles and active businesses. User queries join the professional `profiles` table; business queries read public business fields. The unified endpoint combines the two bounded SQL branches with `UNION ALL`, computes explicit exact/prefix/contains relevance, and paginates the merged result in SQL. Results are deterministic (`relevance`, verified tie-break, name, id), filter-only discovery is supported, and search does not include posts, personalization, recommendations or follow/reaction ranking. A dedicated search engine can replace the query layer later if scale or relevance requirements justify it.
+
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 

@@ -93,3 +93,7 @@ npm start
 ```
 
 The frontend uses `http://localhost:8000/api/v1` in development. Flutter setup is pending the mobile toolchain installation.
+
+## Search and discovery
+
+The backend exposes public MySQL-backed search for visible users/profiles and active businesses at `/api/v1/search`, `/api/v1/search/users` and `/api/v1/search/businesses`. It supports keyword, type, industry, emirate and verified filters with deterministic relevance and pagination. Search does not personalize results, search posts or alter feed ordering.
