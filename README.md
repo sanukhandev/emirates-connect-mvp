@@ -64,6 +64,8 @@ See `docs/` for product scope, architecture, API contract, data model, UI/brand 
 
 ## Local development
 
+Verification is available under `/api/v1/verification/user` and `/api/v1/verification/business/{business}` for authenticated users and authorized business owners/admins. System-admin review uses `/api/v1/admin/verifications`; uploaded evidence is private and accessed only through short-lived authorized document URLs. Public identity resources expose only the trusted `is_verified` state.
+
 Backend requirements: PHP 8.2+, Composer, MySQL and Redis.
 
 ```bash

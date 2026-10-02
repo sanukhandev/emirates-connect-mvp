@@ -45,6 +45,19 @@ Comments use one polymorphic `comments` table with `author_type` values `user` o
 ## Reactions
 Reactions use one `reactions` table with `user_id` as the authenticated human actor and a polymorphic `reactable` target aliased as `post` or `comment`. A database unique constraint permits one active reaction per user and target; `PUT` is idempotent and switches the existing type, while `DELETE` removes it. Posts, comments, and replies share stable summary output with total counts and `current_user`; businesses are never reaction actors. Mutations require an active account and a publicly interactable target, and summaries are aggregate-loaded into existing post/comment resources without changing chronological feed ranking.
 
+## Verification
+Verification uses shared infrastructure with distinct User and Business subjects:
+
+```text
+User / Business
+       |
+VerificationRequest
+       |-- VerificationDocument (private storage)
+       `-- VerificationAuditLog (append-only)
+```
+
+The canonical subject state is `not_submitted -> pending -> approved|rejected`; rejected subjects may submit a new historical request, while approved subjects may not resubmit. Only one pending request is allowed per subject, enforced transactionally under a subject lock. User submissions always bind to the authenticated user. Business submissions require current owner/admin membership; business admin is not system admin. Public resources expose only `is_verified`; management/admin resources expose controlled status and review data. Documents remain private and are accessed by system admins only through short-lived signed URLs.
+
 ## Follow network
 EC-010 adds one directional follows table: an authenticated human User is always the follower and the polymorphic target is either a User or Business (user/business aliases). A database unique constraint permits one edge per follower/target. User and business follow mutations are idempotent, self-follow is rejected, and businesses are targets only. Public follower/following lists are paginated and exclude hidden accounts/targets. User resources expose follower/following counts; business resources expose follower counts. The graph is intentionally not connected to feed ordering or personalization yet.
 

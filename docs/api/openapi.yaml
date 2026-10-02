@@ -193,10 +193,63 @@ paths:
     get:
       summary: List supported UAE emirates
       responses: { '200': { description: Emirate options } }
-  /verification-requests:
+  /verification/user:
+    get:
+      summary: Get the current user's verification status
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Management status }, '401': { description: Unauthenticated } }
     post:
-      summary: Submit verification request
-      responses: { '202': { description: Submitted } }
+      summary: Submit the current user for verification
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { $ref: '#/components/schemas/UserVerificationSubmission' } } } }
+      responses: { '201': { description: Pending verification request }, '409': { description: Already pending or approved }, '422': { description: Validation error } }
+  /verification/business/{business}:
+    get:
+      summary: Get verification status for an authorized business manager
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: business, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Management status }, '403': { description: Owner/admin required }, '404': { description: Business unavailable } }
+    post:
+      summary: Submit an active business for verification
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: business, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { $ref: '#/components/schemas/BusinessVerificationSubmission' } } } }
+      responses: { '201': { description: Pending verification request }, '403': { description: Owner/admin required }, '409': { description: Already pending or approved }, '422': { description: Validation error } }
+  /admin/verifications:
+    get:
+      summary: List verification requests for system administrators
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [not_submitted, pending, approved, rejected] } }
+        - { name: subject_type, in: query, schema: { type: string, enum: [user, business] } }
+      responses: { '200': { description: Paginated verification requests }, '403': { description: System administrator required } }
+  /admin/verifications/{verification}:
+    get:
+      summary: Get verification detail and audit history
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: verification, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { '200': { description: Verification detail }, '403': { description: System administrator required }, '404': { description: Not found } }
+  /admin/verifications/{verification}/approve:
+    post:
+      summary: Approve a pending verification request
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: verification, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { '200': { description: Approved }, '403': { description: System administrator required }, '409': { description: Invalid transition } }
+  /admin/verifications/{verification}/reject:
+    post:
+      summary: Reject a pending verification request
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: verification, in: path, required: true, schema: { type: integer, format: int64 } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RejectVerificationRequest' } } } }
+      responses: { '200': { description: Rejected }, '403': { description: System administrator required }, '409': { description: Invalid transition }, '422': { description: Rejection reason required } }
+  /admin/verifications/{verification}/documents/{document}:
+    get:
+      summary: Get a short-lived signed URL for a private verification document
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: verification, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: document, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: Temporary signed URL, content: { application/json: { schema: { $ref: '#/components/schemas/TemporaryDocumentAccess' } } } }, '403': { description: System administrator required }, '404': { description: Document not found or IDOR blocked } }
   /posts:
     post:
       summary: Create a text or image post as the current user or an authorized business
@@ -784,3 +837,37 @@ components:
       properties:
         type: { type: string, enum: [like, celebrate, support, insightful] }
       description: Sets one idempotent human-user reaction per target. Businesses cannot be reaction actors.
+    UserVerificationSubmission:
+      type: object
+      required: [legal_name, document_types, documents]
+      properties:
+        legal_name: { type: string, maxLength: 255 }
+        document_types: { type: array, minItems: 1, maxItems: 5, items: { type: string, enum: [identity_document, proof_of_professional_identity, other_supporting_document] } }
+        documents: { type: array, minItems: 1, maxItems: 5, items: { type: string, format: binary } }
+      description: User subject is always the authenticated account. Documents are private.
+    BusinessVerificationSubmission:
+      type: object
+      required: [legal_business_name, registration_number, document_types, documents]
+      properties:
+        legal_business_name: { type: string, maxLength: 255 }
+        registration_number: { type: string, maxLength: 255 }
+        licence_number: { type: string, maxLength: 255, nullable: true }
+        issuing_authority: { type: string, maxLength: 255, nullable: true }
+        document_types: { type: array, minItems: 1, maxItems: 5, items: { type: string, enum: [trade_licence, certificate_of_incorporation, proof_of_business, other_supporting_document] } }
+        documents: { type: array, minItems: 1, maxItems: 5, items: { type: string, format: binary } }
+      description: Requires current business owner/admin membership. Documents are private.
+    RejectVerificationRequest:
+      type: object
+      required: [rejection_reason]
+      properties:
+        rejection_reason: { type: string, maxLength: 2000 }
+    TemporaryDocumentAccess:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [url, expires_at]
+          properties:
+            url: { type: string, format: uri, description: Five-minute signed URL; never a permanent storage URL }
+            expires_at: { type: string, format: date-time }
