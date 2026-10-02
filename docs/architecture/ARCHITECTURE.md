@@ -67,6 +67,9 @@ EC-012 uses a shared MySQL-backed search service for public users/profiles and a
 ## Media pipeline
 Client requests upload intent -> API validates -> signed object-storage upload -> client completes upload -> API queues validation/transcode -> worker generates optimized renditions/thumbnail -> media becomes `ready` -> CDN serves rendition. Do not proxy large videos through PHP in production.
 
+## Reels
+Reels use a dedicated polymorphic domain (`user` or `business`) with `created_by_user_id` for the authenticated human actor. The local MVP accepts one validated MP4 into private generated storage, then the processing service promotes it to a public playback disk and marks it published synchronously; the service boundary is the replacement point for a queued transcoder, thumbnails and CDN/object storage. Public feed and author listings expose published reels only and use chronological cursor pagination (`published_at DESC, id DESC`).
+
 ## Scalability path
 Start modular monolith. Scale API/workers horizontally; move cache/queue to managed Redis; use read replicas/search service only after metrics justify them. Avoid premature microservices.
 

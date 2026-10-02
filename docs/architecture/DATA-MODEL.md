@@ -16,4 +16,6 @@ Core tables/entities:
 - `audit_logs`: privileged/security-relevant actions.
 - `notifications`: in-app notification payload/read state (can be deferred if needed).
 
+`reels` stores `author_type`/`author_id`, `created_by_user_id`, plain-text caption, controlled processing status, optional trusted media metadata, private source storage metadata, public playback/thumbnail metadata, and publication timestamps. Source and playback paths are internal only; soft deletion preserves the record while removing managed assets. Composite indexes cover chronological feed ordering and author/status listings.
+
 Indexes must cover feed ordering, author lookups, business membership, comment parent/post, moderation state and verification state. Use FK constraints where practical and explicit delete behavior.
