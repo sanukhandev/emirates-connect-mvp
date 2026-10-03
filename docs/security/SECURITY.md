@@ -1,5 +1,7 @@
 # Security Baseline
 
+The EC-017 review evidence is maintained in [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md), [SECURITY-CONTROL-MATRIX.md](SECURITY-CONTROL-MATRIX.md), [SECURITY-REMEDIATION-PLAN.md](SECURITY-REMEDIATION-PLAN.md), and [PRODUCTION-SECURITY-GATE.md](PRODUCTION-SECURITY-GATE.md).
+
 ## Required before MVP production
 - TLS only; HSTS at edge when domain is stable.
 - Secure authentication, revocation and password-reset flow.
@@ -39,6 +41,12 @@
 - Search is public but rate-limited to 60 requests per minute. Search inputs are length-bounded, validated against the canonical industry/emirate/type values, parameter-bound and LIKE-wildcard escaped. Search branches reuse active user/business visibility conditions and return only compact public fields; email, account status, admin state, verification workflow state and documents are never searchable or serialized. The EC-016 admin verification fix uses controlled polymorphic loading for mixed user/business subjects.
 - Reels accept one MP4 video up to 100 MB per mutation, store the source under a generated key on a private disk, and expose only a playback URL after publication. Source paths, disks, processing errors and internal author/creator fields are excluded from public resources. User authorship is bound to the authenticated user; business authorship requires current active owner/admin/editor membership. Hidden users and inactive businesses hide their published reels, mutation endpoints use a named 20-per-hour limiter, and delete removes stored source/playback/thumbnail assets where present.
 - Notifications are private to the authenticated human recipient; list, unread-count, mark-read and mark-all queries are recipient-scoped and cross-user IDs return 404. Payloads contain only controlled types, compact public actor metadata and minimal IDs. Self-actions are suppressed, event dedupe keys prevent repeated follow/reaction/review delivery, hidden actors resolve to null, and system-admin identity, reviewer details, rejection reasons and verification documents are never serialized.
+
+## EC-017 production requirements
+
+- Registration is source-rate-limited; verification submissions, report creation, admin mutations and signed verification-document downloads have dedicated throttles.
+- API responses receive baseline `nosniff`, referrer, permissions and frame-protection headers. HSTS is emitted only for secure production requests.
+- Production deployment must set `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, secure HttpOnly cookies, explicit CORS origins, intentional trusted-proxy settings, and private storage policies. Local development values are not production approval.
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.
