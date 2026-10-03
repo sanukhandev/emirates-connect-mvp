@@ -79,3 +79,6 @@ Start modular monolith. Scale API/workers horizontally; move cache/queue to mana
 
 ## Presentation architecture
 The shared parent design system defines brand tokens and UI principles. Angular implements these through Tailwind CSS and reusable UI primitives; Flutter implements equivalent semantics through ThemeData/shared widgets. Visual tokens are shared conceptually but application code remains inside each submodule.
+# Reporting and moderation
+
+EC-015 uses a dedicated `reports` record and append-only `moderation_audit_logs`. An authenticated active user submits a controlled report for a visible user, business, post, comment or reel; the reporter is always derived from the session. An active system admin reviews it transactionally with row locking, then dismisses it or applies a target-appropriate existing visibility/account-status action. There are no automatic thresholds or AI decisions. Deleted targets remain reportable in history and resolve as unavailable summaries rather than breaking the moderation queue.

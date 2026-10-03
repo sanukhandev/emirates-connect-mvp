@@ -42,3 +42,13 @@
 
 ## Privacy
 Collect only fields required for the business-network use case. Separate public profile/business data from private account/verification data. Define retention/deletion/export processes and avoid placing PII in logs, analytics events, filenames or object keys.
+# Reporting and moderation controls
+
+- Reporters are session-derived; client input cannot select a reporter or raw morph class.
+- Target aliases are allow-listed and resolved through canonical public visibility checks.
+- One unresolved report per reporter/target is allowed; reporting is limited to 10 requests per hour per user/IP.
+- Only active system admins can review reports. Business administrators are not platform moderators.
+- Report details and resolutions are plain text with bounded lengths.
+- Reporter resources omit reviewer identity, internal resolution and audit history; public resources expose no report data.
+- Moderation actions are target-specific, transactionally locked, and recorded in append-only audit logs.
+- Reviewer identity and private verification/storage data are not exposed to reporters or public resources.

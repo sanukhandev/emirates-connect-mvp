@@ -521,7 +521,46 @@ paths:
   /reports:
     post:
       summary: Report content/account/business
-      responses: { '201': { description: Report created } }
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportCreate' }
+      responses: { '201': { description: Report created }, '404': { description: Target unavailable }, '409': { description: Duplicate unresolved report }, '422': { description: Invalid report } }
+  /me/reports:
+    get:
+      summary: List the authenticated user's submitted reports
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }, { name: cursor, in: query, schema: { type: string } }]
+      responses: { '200': { description: Cursor-paginated reporter-scoped reports }, '401': { description: Unauthenticated } }
+  /admin/reports:
+    get:
+      summary: List reports for system-admin moderation
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, reviewed, dismissed, actioned] } }
+        - { name: target_type, in: query, schema: { type: string, enum: [user, business, post, comment, reel] } }
+        - { name: reason, in: query, schema: { type: string, enum: [spam, harassment, hate_or_abuse, misinformation, impersonation, inappropriate_content, fraud_or_scam, privacy_violation, other] } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated admin report queue }, '403': { description: System admin required } }
+  /admin/reports/{report}:
+    get:
+      summary: View a report and moderation audit history
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: report, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Admin report detail }, '403': { description: System admin required }, '404': { description: Report not found } }
+    patch:
+      summary: Dismiss a report or apply a target-appropriate moderation action
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: report, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportModeration' }
+      responses: { '200': { description: Resolved report }, '403': { description: System admin required }, '409': { description: Already resolved }, '422': { description: Invalid action for target } }
   /search:
     get:
       summary: Unified public user and business search
@@ -580,6 +619,20 @@ components:
       scheme: bearer
       bearerFormat: Sanctum
   schemas:
+    ReportCreate:
+      type: object
+      required: [target_type, target_id, reason]
+      properties:
+        target_type: { type: string, enum: [user, business, post, comment, reel] }
+        target_id: { type: integer, minimum: 1 }
+        reason: { type: string, enum: [spam, harassment, hate_or_abuse, misinformation, impersonation, inappropriate_content, fraud_or_scam, privacy_violation, other] }
+        details: { type: string, maxLength: 2000 }
+    ReportModeration:
+      type: object
+      required: [action, resolution]
+      properties:
+        action: { type: string, enum: [dismiss, content_removed, account_suspended, business_suspended] }
+        resolution: { type: string, maxLength: 2000 }
     AccountCredentials:
       type: object
       required: [name, email, password, password_confirmation]
