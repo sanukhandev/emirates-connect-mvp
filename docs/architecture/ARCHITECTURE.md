@@ -82,3 +82,7 @@ The shared parent design system defines brand tokens and UI principles. Angular 
 # Reporting and moderation
 
 EC-015 uses a dedicated `reports` record and append-only `moderation_audit_logs`. An authenticated active user submits a controlled report for a visible user, business, post, comment or reel; the reporter is always derived from the session. An active system admin reviews it transactionally with row locking, then dismisses it or applies a target-appropriate existing visibility/account-status action. There are no automatic thresholds or AI decisions. Deleted targets remain reportable in history and resolve as unavailable summaries rather than breaking the moderation queue.
+
+## Admin Console backend
+
+EC-016 exposes the platform-admin API under `/api/v1/admin/*`. Every endpoint requires Sanctum authentication, an active account and `users.is_system_admin`; business owner/admin/editor memberships never grant platform-admin access. Dashboard counts use indexed aggregate queries, verification administration reuses the EC-011 lifecycle, moderation administration reuses EC-015 reports/audits, and bounded user/business operational resources avoid private credentials and storage paths. Direct account/business suspension is explicit, reason-required and append-only audited; system-admin accounts are protected from the generic suspension action. Verification subjects use `morphWith` so user and business requests can be loaded together without per-row fallback queries or invalid cross-morph relationships.

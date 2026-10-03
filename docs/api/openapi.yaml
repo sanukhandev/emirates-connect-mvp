@@ -223,6 +223,15 @@ paths:
         - { name: status, in: query, schema: { type: string, enum: [not_submitted, pending, approved, rejected] } }
         - { name: subject_type, in: query, schema: { type: string, enum: [user, business] } }
       responses: { '200': { description: Paginated verification requests }, '403': { description: System administrator required } }
+  /admin/verifications/audit:
+    get:
+      summary: List verification audit entries for system administrators
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: action, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated verification audit }, '403': { description: System administrator required } }
   /admin/verifications/{verification}:
     get:
       summary: Get verification detail and audit history
@@ -561,6 +570,71 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/ReportModeration' }
       responses: { '200': { description: Resolved report }, '403': { description: System admin required }, '409': { description: Already resolved }, '422': { description: Invalid action for target } }
+  /admin/dashboard:
+    get:
+      summary: Get operational counts for the system-admin dashboard
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses: { '200': { description: Dashboard counts }, '403': { description: System administrator required } }
+  /admin/moderation/audit:
+    get:
+      summary: List moderation audit entries for system administrators
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: action, in: query, schema: { type: string } }
+        - { name: target_type, in: query, schema: { type: string, enum: [user, business, post, comment, reel] } }
+        - { name: report_id, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: actor_user_id, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated moderation audit }, '403': { description: System administrator required } }
+  /admin/users:
+    get:
+      summary: List operational user records for system administrators
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, active, suspended, disabled] } }
+        - { name: verified, in: query, schema: { type: boolean } }
+        - { name: q, in: query, schema: { type: string, maxLength: 120 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated admin users }, '403': { description: System administrator required } }
+  /admin/users/{user}:
+    get:
+      summary: Get a safe operational user detail
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: user, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { '200': { description: Admin user detail }, '403': { description: System administrator required }, '404': { description: User not found } }
+  /admin/users/{user}/suspend:
+    post:
+      summary: Suspend a non-admin user with an audited reason
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: user, in: path, required: true, schema: { type: integer, format: int64 } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSuspension' } } } }
+      responses: { '200': { description: Suspended user }, '403': { description: System administrator required }, '422': { description: Invalid reason or protected system admin } }
+  /admin/businesses:
+    get:
+      summary: List operational business records for system administrators
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, inactive, suspended] } }
+        - { name: verified, in: query, schema: { type: boolean } }
+        - { name: q, in: query, schema: { type: string, maxLength: 120 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses: { '200': { description: Paginated admin businesses }, '403': { description: System administrator required } }
+  /admin/businesses/{business}:
+    get:
+      summary: Get a safe operational business detail
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: business, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { '200': { description: Admin business detail }, '403': { description: System administrator required }, '404': { description: Business not found } }
+  /admin/businesses/{business}/suspend:
+    post:
+      summary: Suspend a business with an audited reason
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ name: business, in: path, required: true, schema: { type: integer, format: int64 } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSuspension' } } } }
+      responses: { '200': { description: Suspended business }, '403': { description: System administrator required }, '422': { description: Invalid reason } }
   /search:
     get:
       summary: Unified public user and business search
@@ -633,6 +707,11 @@ components:
       properties:
         action: { type: string, enum: [dismiss, content_removed, account_suspended, business_suspended] }
         resolution: { type: string, maxLength: 2000 }
+    AdminSuspension:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, maxLength: 2000 }
     AccountCredentials:
       type: object
       required: [name, email, password, password_confirmation]
