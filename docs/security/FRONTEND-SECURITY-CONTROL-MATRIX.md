@@ -15,5 +15,5 @@
 | Object URL lifecycle | Preview URLs revoked on replacement/destroy | PASS |
 | Environment leakage | Production config contains relative API URL and no secrets; bundle scan clean | PASS |
 | Build security | AOT/optimization/output hashing; no production source maps observed | PASS |
-| Dependencies | Runtime audit clean; dev-tool findings assessed as follow-up | PASS WITH FOLLOW-UP |
+| Dependencies | Runtime audit clean; `http-cache-semantics` fixed; `piscina` assessed as Angular build-only risk requiring a breaking downgrade | PASS WITH FOLLOW-UP |
 | CSP/TLS/HSTS/CORS edge | Hosting/deployment-owned controls | REQUIRES DEPLOYMENT VALIDATION |
