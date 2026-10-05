@@ -23,7 +23,7 @@ Reviewed the EC-001–EC-017 backend hot paths on the local MariaDB-backed appli
 ### PERF-003 — Search leading-wildcard scans
 
 - Severity: LOW
-- Evidence: contains search uses `%term%` across multiple fields and is not a B-tree prefix lookup.
+- Evidence: contains search uses `%term%` across multiple fields and is not a B-tree prefix lookup; the representative `all` search plan scanned the 1,131-row users branch and 342-row businesses branch, then sorted the 1,440-row derived union.
 - Status: **NON-BLOCKING FOLLOW-UP**; the current MVP safely binds and escapes search input. Move to full-text/search infrastructure only after measured volume or latency requires it.
 
 ## Query-plan summary
@@ -36,6 +36,7 @@ Reviewed the EC-001–EC-017 backend hot paths on the local MariaDB-backed appli
 | Verification pending | `range`, `verification_queue_order_index`, 228 rows, no filesort | GOOD |
 | Feed posts | `range`, `posts_feed_order_index`, 467 rows | GOOD |
 | Reel feed | `range`, `reels_feed_order_index`, 164 rows | GOOD |
+| Search `q=ali` | users/businesses table scans; derived union 1,440 rows and filesort | ACCEPTABLE MVP |
 | Notifications list | recipient ordering index, `type=ref` | GOOD |
 | Notifications unread | recipient/read index, `Using index` | GOOD |
 | Admin users | bounded scan/filesort | ACCEPTABLE MVP |
@@ -60,4 +61,3 @@ These are development-server measurements only, not production capacity claims. 
 | `/api/v1/search?q=ali&per_page=20` | 50 | 50 | 2.49 | 2294 ms | 4194 ms | 4734 ms | 4734 ms |
 
 The single-process local server is the limiting factor; these timings require a real deployment load test before SLO decisions.
-
