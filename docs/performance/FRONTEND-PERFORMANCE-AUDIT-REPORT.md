@@ -41,7 +41,14 @@ Production budgets are present (initial warning/error 500 kB/1 MB; component-sty
 - Feed, reels, search and notifications use cursor/request-version protection and stable identity tracking. Feed/reels use `IntersectionObserver` for load-more.
 - Reels use `preload="metadata"`; local preview object URLs are revoked.
 - No service worker, polling loop, runtime bearer storage, or broad third-party runtime library was found.
-- Browser performance E2E could not complete because the existing deterministic user fixture stopped at `/register` instead of reaching `/onboarding`; this is recorded as an infrastructure blocker, not a product result.
+- Deterministic performance E2E now provisions fixtures through Laravel Tinker and completes real Angular/Sanctum login; feed and notification scenarios pass 2/2.
+
+## Browser performance evidence
+
+- Feed: 60 posts, 3 pages, one initial request and one request per load-more, cursor progression present, no duplicate post IDs.
+- Notifications: 45 notifications, 3 pages, one initial request and two load-more requests, no duplicate IDs, one unread-count request during stable SPA login/navigation.
+- The original registration bootstrap failure was classified as environment/configuration: the required local services were not listening, leaving the browser on `/register`; no registration or backend contract defect was found.
+- Focused performance suite: 2 total, 2 passed, 0 failed, 0 skipped. Existing delayed-search regression: 1 passed.
 
 ## Follow-ups
 

@@ -12,3 +12,4 @@ These are deployment or scale follow-ups, not confirmed local application defect
 
 - Removed duplicate notification unread-count request caused by page/service overlap.
 - Retained cursor pagination, stale-response protection, lazy routes, media metadata preload and object-URL cleanup.
+- Closed feed and notification browser validation with deterministic Tinker fixtures; no browser registration/onboarding dependency remains in the performance suite.
