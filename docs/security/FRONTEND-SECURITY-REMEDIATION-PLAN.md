@@ -10,4 +10,4 @@
 - Prevented automatic replay of unsafe mutation requests after HTTP 419.
 - Prevented stale `/me` responses from restoring a logged-out user.
 - Retained signed verification-document privacy and opener isolation.
-- Replaced EC-015 environment credentials with deterministic runtime Eloquent fixtures; reporting suite passes 4/4.
+- Revalidated EC-015 with deterministic runtime Eloquent fixtures; reporting suite passes 4/4 and the `EC15_REPORTER_*` blocker is closed.

@@ -15,7 +15,7 @@ No confirmed Critical/High frontend runtime vulnerability remains open. The prod
 - Signed verification documents: PASS; backend-provided short-lived URL, authorized PDF 200, private/no-store response, no raw path or browser-storage persistence.
 - Production build: PASS; optimized build with no emitted source maps or secret leakage found.
 - Runtime dependency audit: PASS; zero vulnerabilities when dev tooling is omitted.
-- EC-016 admin security/browser suite: PASS (6/6). EC-015 reporting E2E remains test-infrastructure blocked by missing `EC15_REPORTER_*` fixture credentials and must be rerun with its deterministic fixture environment.
+- EC-016 admin security/browser suite: PASS (6/6).
 - EC-015 reporting security/browser suite: PASS (4/4) using runtime Eloquent fixtures; no `EC15_REPORTER_*` credentials required.
 
 ## Non-blocking follow-ups
